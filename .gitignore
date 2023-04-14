@@ -1,2 +1,3 @@
-/__pycache__
+__pycache__
 *.csv
+__pycache__/r_data_scraper.cpython-39.pyc

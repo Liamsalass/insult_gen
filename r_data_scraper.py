@@ -41,24 +41,17 @@ class scraper:
                     
         self.data = None
 
-        # set up hdf5 group
-        self.hdf = h5py.File(hdf5_file_name, 'w')
-      
-        self.scrapedata = self.hdf.create_group('/scrapedata')
 
+    def store_data(self, data_set_name='test'):
+        if not data_set_name.endswith('.csv'):
+            data_set_name += '.csv'
 
-    def store_data(self, data_set_name='default'):
-        if self.data is None:
-            print('Error: No data to store')
-            return
-        
-        # store data in hdf5 file
-        self.scrapedata.create_dataset(data_set_name, data=self.data)
+        # store the data in an csv
+        if self.data is not None:
+            self.data.to_csv(data_set_name, index=False)
+        return 
+ 
 
-
-
-        
-            
 
     def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), show_images=False):
         print('Scraping data from subreddit: ' + subreddit_name)
@@ -67,8 +60,8 @@ class scraper:
         print('Image size: ' + str(image_size))
         print('=' * 50)
 
-        # create a pandas dataframe to store the data
-        df = pd.DataFrame(columns=['title', 'image', 'comments'])
+        df = pd.DataFrame(columns=['title'] + ['comment_' + str(i) for i in range(num_comments)] + ['p' + str(i) for i in range(image_size[0] * image_size[1] * 3)])
+
 
         # get the top posts from the subreddit
         subreddit = self.reddit.subreddit(subreddit_name)
@@ -95,8 +88,7 @@ class scraper:
                     plt.pause(2)
                     plt.close()
             else:
-                img_pixels = []
-
+                img_pixels = [0] * image_size[0] * image_size[1] * 3
             
 
             # get the top comments
@@ -111,17 +103,17 @@ class scraper:
                 comments.replace_more(limit=num_comments)
                 comments_sorted = sorted(comments, key=lambda comment: comment.score, reverse=True)[:num_comments]
                 top_comments = [comment.body.replace('\n', ' ') for comment in comments_sorted]
-            
+
             # add the data to the dataframe
-            df = df.append({'title': title, 'image': img_pixels, 'comments': top_comments}, ignore_index=True)       
+            row_data = [title] + top_comments + img_pixels
+            row_length = len(row_data)
+            if row_length == len(df.columns):
+                df.loc[len(df)] = row_data       
 
-        # transfor dataframe to have not object types
-        df['image'] = df['image'].apply(lambda x: np.array(x))
-        df['comments'] = df['comments'].apply(lambda x: np.array(x))
-        
+        # store the data in the class
         self.data = df     
-
         return df
+
 
         
 

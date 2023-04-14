@@ -1,4 +1,3 @@
-import praw
 import csv
 from PIL import Image
 import requests
@@ -9,6 +8,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
+import praw
 
 
 
@@ -19,22 +19,26 @@ class scraper:
 
         # authenticate with Reddit
 
-        password = input('Enter your Reddit password: ')
-        
-        if password == None:
-            print('Error: Password is required')
-            exit()
-        try:
-            self.reddit = praw.Reddit(client_id=client_id,
-                                      client_secret=client_secret,
-                                      username=username,
-                                      password=password,
-                                      user_agent=user_agent)
-        except Exception as e:
-            print(e)
-            print('Error: Could not authenticate with Reddit')
-            exit()
+        while True:
+            password = input('Enter your Reddit password: ')
 
+            if password == '':
+                print('Error: Password is required')
+                continue
+            
+            try:
+                self.reddit = praw.Reddit(client_id=client_id,
+                                        client_secret=client_secret,
+                                        username=username,
+                                        password=password,
+                                        user_agent=user_agent)
+                break
+            except Exception as e:
+                print(e)
+                print('Error: Could not authenticate with Reddit')
+                exit()
+            
+                    
         self.data = None
 
         # set up hdf5 group
@@ -56,7 +60,7 @@ class scraper:
         
             
 
-    def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100)):
+    def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), show_images=False):
         print('Scraping data from subreddit: ' + subreddit_name)
         print('Number of top posts to scrape: ' + str(num_top_posts))
         print('Number of top comments to scrape: ' + str(num_comments))
@@ -84,7 +88,7 @@ class scraper:
                 img_pixels = img_array.flatten().tolist()
 
                 # display the image using Matplotlib
-                if num_top_posts < 5:
+                if num_top_posts < 5 or show_images:
                     plt.imshow(img)
                     plt.ion()
                     plt.show()

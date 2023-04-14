@@ -2,7 +2,7 @@
 
 Required libs 
 ```
-conda create -n insult python=3.9 tqdm pillow pip pandas numpy hp5y
+conda create -n insult python=3.9 tqdm pillow pip pandas numpy matplotlib h5py requests chardet
 ```
 to activate 
 ```

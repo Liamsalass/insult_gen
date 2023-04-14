@@ -2,7 +2,7 @@
 
 Required libs 
 ```
-conda create -n insult python=3.9 tqdm pillow pip
+conda create -n insult python=3.9 tqdm pillow pip pandas numpy
 
 ```
 to activate 

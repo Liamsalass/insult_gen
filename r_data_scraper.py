@@ -5,75 +5,118 @@ import requests
 from io import BytesIO
 from base64 import b64encode
 from tqdm import tqdm
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class scraper:
-    def __init__(self, client_id, client_secret, user_agent):
-        self.reddit = praw.Reddit(client_id=client_id, client_secret=client_secret, user_agent=user_agent)
+    def __init__(self, client_id='1xk7tjG6z2mAYOL8cPEWEg', client_secret='WbFmtLt970ZnlguOqAaXGNUFu5XzrQ', username='SandInMyHoles', user_agent='test'):
+        # authenticate with Reddit
+
+        password = input('Enter your Reddit password: ')
+        
+        if password == None:
+            print('Error: Password is required')
+            exit()
+        try:
+            self.reddit = praw.Reddit(client_id=client_id,
+                                      client_secret=client_secret,
+                                      username=username,
+                                      password=password,
+                                      user_agent=user_agent)
+        except Exception as e:
+            print(e)
+            print('Error: Could not authenticate with Reddit')
+            exit()
 
 
 
-    def get_all_data(self, subreddit_name, num_top_posts, num_comments, image_size, file_name):
+
+    def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), file_name='roast_me_test'):
+        print('Scraping data from subreddit: ' + subreddit_name)
+        print('Number of top posts to scrape: ' + str(num_top_posts))
+        print('Number of top comments to scrape: ' + str(num_comments))
+        print('Image size: ' + str(image_size))
+        print('CSV file name: ' + file_name)
+        print('=' * 50)
 
         if not file_name.endswith('.csv'):
             file_name += '.csv'
 
-
-        # create a CSV file and write the headers
-        csv_file = open(file_name, 'w', newline='', encoding='utf-8')
-        csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['Title', 'Image URL', 'Top Comment 1', 'Top Comment 2', 'Top Comment 3', 'Top Comment 4', 'Top Comment 5'])
+        # create a pandas dataframe to store the data
+        df = pd.DataFrame(columns=['title', 'image', 'comments'])
 
         # get the top posts from the subreddit
         subreddit = self.reddit.subreddit(subreddit_name)
         top_posts = subreddit.top(limit=num_top_posts)
 
-        
-
-        # loop through the top posts and write the data to the CSV file
+        # loop through the top posts and write the data to the dataframe
         for post in tqdm(top_posts):
             # get the post title
             title = post.title.replace('\n', ' ')
-            
-            # get the post image URL and resize the image
-            image_url = post.url if post.url.endswith(('jpg', 'png', 'gif')) else ''
+
+            # get the post image and resize it
+            if post.url.endswith(('jpg', 'png', 'gif')):
+                response = requests.get(post.url)
+                img = Image.open(BytesIO(response.content))
+                img = img.resize(image_size)
+                img_array = np.array(img)
+                img_pixels = img_array.flatten().tolist()
+
+                # display the image using Matplotlib
+                if num_top_posts < 5:
+                    plt.imshow(img)
+                    plt.ion()
+                    plt.show()
+                    plt.pause(2)
+                    plt.close()
+            else:
+                img_pixels = []
 
 
-            try:
-                response = requests.get(image_url)
-                image = Image.open(BytesIO(response.content))
-                image = image.resize(image_size)
-                buffered = BytesIO()
-                image.save(buffered, format="JPEG")
-                image_bytes = buffered.getvalue()
-                image_data = 'data:image/jpeg;base64,' + str(b64encode(image_bytes), 'utf-8')
 
-            except Exception as e:
-                print(e, image_url)
-                image_data = ''
-                
-            
-            # get the comments and their scores
-            comments = post.comments
-            comments_sorted = sorted(comments, key=lambda comment: comment.score, reverse=True)[:num_comments]
-            top_comments = [comment.body.replace('\n', ' ') for comment in comments_sorted]
-            
-            # write the data to the CSV file
-            csv_writer.writerow([title, image_data] + top_comments)
-        # close the CSV file
-        csv_file.close()
+            # get the top comments
+            if num_comments < 4:
+                # faster code if there are less than 3 comments
+                comments = post.comments
+                comments_sorted = sorted(comments, key=lambda comment: comment.score, reverse=True)[:num_comments]
+                top_comments = [comment.body.replace('\n', ' ') for comment in comments_sorted]
+            else:
+                # slower code if there are more than 3 comments
+                comments = post.comments
+                comments.replace_more(limit=num_comments)
+                comments_sorted = sorted(comments, key=lambda comment: comment.score, reverse=True)[:num_comments]
+                top_comments = [comment.body.replace('\n', ' ') for comment in comments_sorted]
+
+            # append the data to the dataframe
+            df = df.append({'title': title, 'image': img_pixels, 'comments': top_comments}, ignore_index=True)
+
+        # write the dataframe to a CSV file
+        df.to_csv(file_name, index=False)
+        print('Data successfully scraped and saved to ' + file_name)
+
+     
+
+        
 
 def main():
-    # create an instance of the scraper class
-    reddit_scraper = scraper('client_id', 'client_secret', 'user_agent')
-    # user inputs parameters to scrape data
-    subreddit_name = input('Enter the name of the subreddit: ')
-    num_top_posts = int(input('Enter the number of top posts to scrape: '))
-    num_comments = int(input('Enter the number of top comments to scrape: '))
-    image_size = (int(input('Enter the width of the image: ')), int(input('Enter the height of the image: ')))
-    file_name = input('Enter the name of the CSV file: ')
-    # scrape the data
-    reddit_scraper.get_all_data(subreddit_name, num_top_posts, num_comments, image_size, file_name)
+    test = input('General test? (y/n): ')
+    
+    if test == 'n':
+        # create an instance of the scraper class
+        reddit_scraper = scraper('client_id', 'client_secret', 'user_agent')
+        # user inputs parameters to scrape data
+        subreddit_name = input('Enter the name of the subreddit: ')
+        num_top_posts = int(input('Enter the number of top posts to scrape: '))
+        num_comments = int(input('Enter the number of top comments to scrape: '))
+        image_size = (int(input('Enter the width of the image: ')), int(input('Enter the height of the image: ')))
+        file_name = input('Enter the name of the CSV file: ')
+        # scrape the data
+        reddit_scraper.get_all_data(subreddit_name, num_top_posts, num_comments, image_size, file_name)
+    else:
+        reddit_scraper= scraper()
+        reddit_scraper.get_all_data()
 
 
 if __name__ == '__main__':

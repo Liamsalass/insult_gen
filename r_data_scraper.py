@@ -30,19 +30,26 @@ class scraper:
             print('Error: Could not authenticate with Reddit')
             exit()
 
+        self.data = None
 
 
+    def store_data(self, hdf5_file_name='data/scaper_testing/default.hdf5'):
+        if self.data is None:
+            print('Error: No data to store')
+            return
+        
+        if hdf5_file_name is not None:
+            self.data.to_hdf(hdf5_file_name, key='df', mode='w')
+            print('Data successfully stored in ' + hdf5_file_name)
 
-    def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), file_name='roast_me_test'):
+    def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100)):
         print('Scraping data from subreddit: ' + subreddit_name)
         print('Number of top posts to scrape: ' + str(num_top_posts))
         print('Number of top comments to scrape: ' + str(num_comments))
         print('Image size: ' + str(image_size))
-        print('CSV file name: ' + file_name)
         print('=' * 50)
 
-        if not file_name.endswith('.csv'):
-            file_name += '.csv'
+        
 
         # create a pandas dataframe to store the data
         df = pd.DataFrame(columns=['title', 'image', 'comments'])
@@ -92,10 +99,8 @@ class scraper:
             # append the data to the dataframe
             df = df.append({'title': title, 'image': img_pixels, 'comments': top_comments}, ignore_index=True)
 
-        # write the dataframe to a CSV file
-        df.to_csv(file_name, index=False)
-        print('Data successfully scraped and saved to ' + file_name)
-
+        # store in self.data
+        self.data = df
      
 
         
@@ -117,6 +122,7 @@ def main():
     else:
         reddit_scraper= scraper()
         reddit_scraper.get_all_data()
+        reddit_scraper.store_data()
 
 
 if __name__ == '__main__':

@@ -11,3 +11,6 @@ roast_me_test = ds.scraper(client_id=client_id, client_secret=secret, username='
 
 # get the data
 roast_me_test.get_all_data()
+
+# store the data
+roast_me_test.store_data('demo.hdf5')

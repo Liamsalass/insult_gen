@@ -81,7 +81,7 @@ class scraper:
                 img_pixels = img_array.flatten().tolist()
 
                 # display the image using Matplotlib
-                if num_top_posts < 5 or show_images:
+                if show_images:
                     plt.imshow(img)
                     plt.ion()
                     plt.show()

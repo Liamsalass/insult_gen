@@ -8,10 +8,15 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import h5py
+
 
 
 class scraper:
-    def __init__(self, client_id='1xk7tjG6z2mAYOL8cPEWEg', client_secret='WbFmtLt970ZnlguOqAaXGNUFu5XzrQ', username='SandInMyHoles', user_agent='test'):
+    def __init__(self, client_id='1xk7tjG6z2mAYOL8cPEWEg', client_secret='WbFmtLt970ZnlguOqAaXGNUFu5XzrQ', username='SandInMyHoles', user_agent='test', hdf5_file_name='data.hdf5'):
+        self.hdf5_file_name = hdf5_file_name
+
+
         # authenticate with Reddit
 
         password = input('Enter your Reddit password: ')
@@ -32,15 +37,24 @@ class scraper:
 
         self.data = None
 
+        # set up hdf5 group
+        self.hdf = h5py.File(hdf5_file_name, 'w')
+      
+        self.scrapedata = self.hdf.create_group('/scrapedata')
 
-    def store_data(self, hdf5_file_name='data/scaper_testing/default.hdf5'):
+
+    def store_data(self, data_set_name='default'):
         if self.data is None:
             print('Error: No data to store')
             return
         
-        if hdf5_file_name is not None:
-            self.data.to_hdf(hdf5_file_name, key='df', mode='w')
-            print('Data successfully stored in ' + hdf5_file_name)
+        # store data in hdf5 file
+        self.scrapedata.create_dataset(data_set_name, data=self.data)
+
+
+
+        
+            
 
     def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100)):
         print('Scraping data from subreddit: ' + subreddit_name)
@@ -48,8 +62,6 @@ class scraper:
         print('Number of top comments to scrape: ' + str(num_comments))
         print('Image size: ' + str(image_size))
         print('=' * 50)
-
-        
 
         # create a pandas dataframe to store the data
         df = pd.DataFrame(columns=['title', 'image', 'comments'])
@@ -81,7 +93,7 @@ class scraper:
             else:
                 img_pixels = []
 
-
+            
 
             # get the top comments
             if num_comments < 4:
@@ -95,13 +107,17 @@ class scraper:
                 comments.replace_more(limit=num_comments)
                 comments_sorted = sorted(comments, key=lambda comment: comment.score, reverse=True)[:num_comments]
                 top_comments = [comment.body.replace('\n', ' ') for comment in comments_sorted]
+            
+            # add the data to the dataframe
+            df = df.append({'title': title, 'image': img_pixels, 'comments': top_comments}, ignore_index=True)       
 
-            # append the data to the dataframe
-            df = df.append({'title': title, 'image': img_pixels, 'comments': top_comments}, ignore_index=True)
+        # transfor dataframe to have not object types
+        df['image'] = df['image'].apply(lambda x: np.array(x))
+        df['comments'] = df['comments'].apply(lambda x: np.array(x))
+        
+        self.data = df     
 
-        # store in self.data
-        self.data = df
-     
+        return df
 
         
 

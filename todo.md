@@ -1,6 +1,13 @@
 # Insult Generator
 ## By Liam Salass
 
+
+## IMMEDIATE 
+
+- use face recognition model to crop only faces
+- also, if more than two faces or no faces detected, skip over the post
+
+
 ## 1 - Data scraping
 
 Data scrape: using reddit api

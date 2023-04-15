@@ -37,22 +37,12 @@ class scraper:
                 print(e)
                 print('Error: Could not authenticate with Reddit')
                 exit()
-            
-                    
+
         self.data = None
 
 
-    def store_data(self, data_set_name='test'):
-        if not data_set_name.endswith('.csv'):
-            data_set_name += '.csv'
-
-        # store the data in an csv
-        if self.data is not None:
-            self.data.to_csv(data_set_name, index=False)
-        return 
  
-
-
+        
     def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), show_images=False):
         print('Scraping data from subreddit: ' + subreddit_name)
         print('Number of top posts to scrape: ' + str(num_top_posts))
@@ -114,6 +104,46 @@ class scraper:
         self.data = df     
         return df
 
+    def return_img(self, index):
+        # get the image from the dataframe
+        img = self.data.iloc[index, 3:].values
+        img = img.reshape((100, 100, 3))
+        return img
+    
+    def return_comments(self, index, num_comments=5):
+        # get the comments from the dataframe
+        comments = self.data.iloc[index, 1:num_comments+1].values
+        return comments
+    
+    def return_title(self, index):
+        # get the title from the dataframe
+        title = self.data.iloc[index, 0]
+        return title
+    
+    def save_data(self, file_name='data.csv'):
+        # save the data to a CSV file
+        self.data.to_csv(file_name, index=False)
+        print('Data saved to ' + file_name)
+
+    def save_data_hdf5(self, file_name='data.hdf5'):
+        # save the data to an HDF5 file
+        self.data.to_hdf(file_name, key='df', mode='w')
+        print('Data saved to ' + file_name)
+
+    def load_data(self, file_name='data.csv'):
+        # load the data from a CSV file
+        self.data = pd.read_csv(file_name)
+        print('Data loaded from ' + file_name)
+
+    def load_data_hdf5(self, file_name='data.hdf5'):
+        # load the data from an HDF5 file
+        self.data = pd.read_hdf(file_name)
+        print('Data loaded from ' + file_name)
+
+    def show_data(self):
+        # display the data
+        print(self.data)
+        
 
         
 
@@ -134,7 +164,7 @@ def main():
     else:
         reddit_scraper= scraper()
         reddit_scraper.get_all_data()
-        reddit_scraper.store_data()
+    
 
 
 if __name__ == '__main__':

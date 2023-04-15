@@ -19,6 +19,14 @@ else:
 
 roast_me_test.get_all_data(num_top_posts=int(num_posts), show_images=show_images)
 
+# save the data
+roast_me_test.save_data_hdf5()
 
-# store the data
-roast_me_test.store_data()
+# load the data
+roast_me_test.load_data_hdf5()
+
+# show the data
+roast_me_test.show_data()
+
+
+

@@ -6,6 +6,7 @@
 
 - use face recognition model to crop only faces
 - also, if more than two faces or no faces detected, skip over the post
+- - Use probabilites of the two first faces. If first face high prob use that, if second face and first face high prob then skip post
 
 
 ## 1 - Data scraping

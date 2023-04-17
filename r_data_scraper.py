@@ -74,12 +74,12 @@ class scraper:
                 gray = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
                 faces = face_cascade.detectMultiScale(gray, 1.1, 4)
                 
-                # check if there are any faces in the image and only proceed if there's one face
+                # check if there are any faces in the image and only proceed if there are one or two faces
                 if len(faces) == 1:
                     # check the probability of a face being in the image and only proceed if it's high enough
                     x, y, w, h = faces[0]
                     face_prob = (w * h) / (img_array.shape[0] * img_array.shape[1])
-                    if face_prob > 0.05:
+                    if face_prob > 0.03:
                         # isolate the person face in the image
                         face = img_array[y:y+h, x:x+w]
                         face = cv2.resize(face, image_size)
@@ -96,10 +96,36 @@ class scraper:
                         # skip if the probability of a face being in the image is too low
                         print('Skipping image: ' + post.url + ' (face probability too low)')
                         continue
+                elif len(faces) > 1:
+                    # get the probabilities of the first and second faces
+                    x1, y1, w1, h1 = faces[0]
+                    x2, y2, w2, h2 = faces[1]
+                    face_prob_1 = (w1 * h1) / (img_array.shape[0] * img_array.shape[1])
+                    face_prob_2 = (w2 * h2) / (img_array.shape[0] * img_array.shape[1])
+                    
+                    # check if the probability of both faces being in the image is too high
+                    if face_prob_1 > 0.03 and face_prob_2 > 0.03:
+                        print('Skipping image: ' + post.url + ' (too many faces detected)')
+                        continue
+                    else:
+                        # isolate the person face in the image for the first face only
+                        x, y, w, h = faces[0]
+                        face = img_array[y:y+h, x:x+w]
+                        face = cv2.resize(face, image_size)
+                        img_pixels = np.array(face).flatten().tolist()
+
+                        # display the image using Matplotlib
+                        if show_images:
+                            plt.imshow(face)
+                            plt.ion()
+                            plt.show()
+                            plt.pause(2)
+                            plt.close()
                 else:
-                    # skip if there are more than one face in the image
-                    print('Skipping image: ' + post.url + ' (more than one face detected)')
+                    # skip if there are no faces detected in the image
+                    print('Skipping image: ' + post.url + ' (no faces detected)')
                     continue
+   
             else:
                 img_pixels = [0] * image_size[0] * image_size[1] * 3
 

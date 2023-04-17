@@ -25,6 +25,9 @@ roast_me_test.save_data_hdf5()
 # load the data
 roast_me_test.load_data_hdf5()
 
+# Save to csv
+roast_me_test.save_data()
+
 # show the data
 roast_me_test.show_data()
 

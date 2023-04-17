@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import h5py
 import praw
-
+import cv2
 
 
 class scraper:
@@ -66,19 +66,43 @@ class scraper:
             if post.url.endswith(('jpg', 'png', 'gif')):
                 response = requests.get(post.url)
                 img = Image.open(BytesIO(response.content))
-                img = img.resize(image_size)
                 img_array = np.array(img)
                 img_pixels = img_array.flatten().tolist()
 
-                # display the image using Matplotlib
-                if show_images:
-                    plt.imshow(img)
-                    plt.ion()
-                    plt.show()
-                    plt.pause(2)
-                    plt.close()
+                # detect faces in the image
+                face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+                gray = cv2.cvtColor(img_array, cv2.COLOR_BGR2GRAY)
+                faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+                
+                # check if there are any faces in the image and only proceed if there's one face
+                if len(faces) == 1:
+                    # check the probability of a face being in the image and only proceed if it's high enough
+                    x, y, w, h = faces[0]
+                    face_prob = (w * h) / (img_array.shape[0] * img_array.shape[1])
+                    if face_prob > 0.05:
+                        # isolate the person face in the image
+                        face = img_array[y:y+h, x:x+w]
+                        face = cv2.resize(face, image_size)
+                        img_pixels = np.array(face).flatten().tolist()
+
+                        # display the image using Matplotlib
+                        if show_images:
+                            plt.imshow(face)
+                            plt.ion()
+                            plt.show()
+                            plt.pause(2)
+                            plt.close()
+                    else:
+                        # skip if the probability of a face being in the image is too low
+                        print('Skipping image: ' + post.url + ' (face probability too low)')
+                        continue
+                else:
+                    # skip if there are more than one face in the image
+                    print('Skipping image: ' + post.url + ' (more than one face detected)')
+                    continue
             else:
                 img_pixels = [0] * image_size[0] * image_size[1] * 3
+
             
 
             # get the top comments

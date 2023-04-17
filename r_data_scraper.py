@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 import h5py
 import praw
 import cv2
+from getpass import getpass
+
+probability = 0.05
 
 
 class scraper:
@@ -20,7 +23,7 @@ class scraper:
         # authenticate with Reddit
 
         while True:
-            password = input('Enter your Reddit password: ')
+            password = getpass('Enter your Reddit password: ')
 
             if password == '':
                 print('Error: Password is required')
@@ -79,7 +82,7 @@ class scraper:
                     # check the probability of a face being in the image and only proceed if it's high enough
                     x, y, w, h = faces[0]
                     face_prob = (w * h) / (img_array.shape[0] * img_array.shape[1])
-                    if face_prob > 0.03:
+                    if face_prob > probability:
                         # isolate the person face in the image
                         face = img_array[y:y+h, x:x+w]
                         face = cv2.resize(face, image_size)
@@ -104,7 +107,7 @@ class scraper:
                     face_prob_2 = (w2 * h2) / (img_array.shape[0] * img_array.shape[1])
                     
                     # check if the probability of both faces being in the image is too high
-                    if face_prob_1 > 0.03 and face_prob_2 > 0.03:
+                    if face_prob_1 > probability and face_prob_2 > probability:
                         print('Skipping image: ' + post.url + ' (too many faces detected)')
                         continue
                     else:
@@ -157,6 +160,17 @@ class scraper:
         # store the data in the class
         self.data = df     
         return df
+    
+    def show_all_img(self, num_images=5):
+        # show all the images in the dataframe
+        for i in range(num_images):
+            img = self.return_img(i)
+            plt.imshow(img)
+            plt.ion()
+            plt.show()
+            plt.pause(2)
+            plt.close()
+
 
     def return_img(self, index):
         # get the image from the dataframe

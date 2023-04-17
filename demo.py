@@ -32,5 +32,5 @@ roast_me_test.save_data()
 roast_me_test.show_data()
 
 #show images 
-roast_me_test.show_all_img(num_posts)
+roast_me_test.show_all_img(int(num_posts))
 

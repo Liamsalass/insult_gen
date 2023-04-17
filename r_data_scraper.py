@@ -164,12 +164,10 @@ class scraper:
     def show_all_img(self, num_images=5):
         # show all the images in the dataframe
         for i in range(num_images):
-            img = self.return_img(i)
+            img = self.data.iloc[i, 3:].values
+            img = img.reshape((100, 100, 3))
             plt.imshow(img)
-            plt.ion()
             plt.show()
-            plt.pause(2)
-            plt.close()
 
 
     def return_img(self, index):

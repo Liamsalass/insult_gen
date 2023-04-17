@@ -124,6 +124,10 @@ class scraper:
             if row_length == len(df.columns):
                 df.loc[len(df)] = row_data       
 
+
+        # print number of rows in the dataframe
+        print('Number of rows in the dataframe: ' + str(len(df)))
+        
         # store the data in the class
         self.data = df     
         return df

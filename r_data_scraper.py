@@ -97,7 +97,7 @@ class scraper:
                             plt.close()
                     else:
                         # skip if the probability of a face being in the image is too low
-                        print('\nSkipping image: ' + post.url + ' (face probability too low)\n')
+                        print('\nSkipping image: ' + post.url + ' \n(face probability too low)\n')
                         continue
                 elif len(faces) > 1:
                     # get the probabilities of the first and second faces
@@ -108,7 +108,7 @@ class scraper:
                     
                     # check if the probability of both faces being in the image is too high
                     if face_prob_1 > probability and face_prob_2 > probability:
-                        print('\nSkipping image: ' + post.url + ' (too many faces detected)\n')
+                        print('\nSkipping image: ' + post.url + ' \n(too many faces detected)\n')
                         continue
                     else:
                         # isolate the person face in the image for the first face only
@@ -126,7 +126,7 @@ class scraper:
                             plt.close()
                 else:
                     # skip if there are no faces detected in the image
-                    print('\nSkipping image: ' + post.url + ' (no faces detected)\n')
+                    print('\nSkipping image: ' + post.url + ' \n(no faces detected)\n')
                     continue
    
             else:

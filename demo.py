@@ -25,12 +25,11 @@ roast_me_test.save_data_hdf5()
 # load the data
 roast_me_test.load_data_hdf5()
 
-# Save to csv
+# Save to csvp
 roast_me_test.save_data()
 
 # show the data
 roast_me_test.show_data()
 
 #show images 
-roast_me_test.show_all_img(int(num_posts))
-
+roast_me_test.show_image_range(0,4)

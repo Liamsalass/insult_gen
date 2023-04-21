@@ -17,8 +17,11 @@ probability = 0.05
 
 class scraper:
     def __init__(self, client_id='1xk7tjG6z2mAYOL8cPEWEg', client_secret='WbFmtLt970ZnlguOqAaXGNUFu5XzrQ', username='SandInMyHoles', user_agent='test', hdf5_file_name='data.hdf5'):
+        
         self.hdf5_file_name = hdf5_file_name
-
+        self.image_size = None
+        self.num_comments = None
+        self.subreddit_name = None
 
         # authenticate with Reddit
 
@@ -47,6 +50,10 @@ class scraper:
  
         
     def get_all_data(self, subreddit_name='RoastMe', num_top_posts=3, num_comments=5, image_size=(100,100), show_images=False):
+        self.image_size = image_size
+        self.num_comments = num_comments
+        self.subreddit_name = subreddit_name
+        
         print('Scraping data from subreddit: ' + subreddit_name)
         print('Number of top posts to scrape: ' + str(num_top_posts))
         print('Number of top comments to scrape: ' + str(num_comments))
@@ -162,21 +169,27 @@ class scraper:
         return df
     
 
-    # Not workking yet
-    def show_all_img(self, num_images=5):
-        # show all the images in the dataframe
-        for i in range(num_images):
-            img = self.data.iloc[i, 3:].values
-            plt.imshow(img)
-            plt.show()
+    def show_image_range(self, start_index, end_index):
 
+        # check if in range
+        if start_index < 0 or end_index > len(self.data):
+            print('Index out of range')
+            return
+        
+        # show the images in the specified range
+        for i in range(start_index, end_index):
+            self.show_img(i)
+            print(self.return_title(i))
+            print(self.return_comments(i))
+            print('=' * 50)
 
-    def return_img(self, index):
-        # get the image from the dataframe
-        img = self.data.iloc[index, 3:].values
-        img = img.reshape((100, 100, 3))
-        return img
-    
+    def show_img(self, index):
+        # show the image at the specified index
+        img = self.data.iloc[index,1 + self.num_comments +  self.image_size[0]*self.image_size[1]*3:].values.reshape((self.image_size[0], self.image_size[1], 3))
+        plt.imshow(img)
+        plt.show()
+        
+
     def return_comments(self, index, num_comments=5):
         # get the comments from the dataframe
         comments = self.data.iloc[index, 1:num_comments+1].values
